@@ -453,8 +453,13 @@ const MS_AUTH = 'https://login.microsoftonline.com/common/oauth2/v2.0';
 const MS_GRAPH = 'https://graph.microsoft.com/v1.0';
 const OL_CLIENT_ID = process.env.OUTLOOK_CLIENT_ID;
 const OL_CLIENT_SECRET = process.env.OUTLOOK_CLIENT_SECRET;
-const OL_REDIRECT = process.env.OUTLOOK_REDIRECT_URI;
 const OL_SCOPES = 'openid profile email Mail.Read Mail.Send User.Read offline_access';
+
+function getOutlookRedirectUri(req) {
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  return `${proto}://${host}/api/outlook/callback`;
+}
 
 let outlookTokens = null; // { access_token, refresh_token, expires_at }
 
@@ -491,10 +496,11 @@ async function getOutlookToken() {
 
 // Step 1: redirect to Microsoft login
 app.get('/api/outlook/auth', (req, res) => {
+  const redirectUri = getOutlookRedirectUri(req);
   const params = new URLSearchParams({
     client_id: OL_CLIENT_ID,
     response_type: 'code',
-    redirect_uri: OL_REDIRECT,
+    redirect_uri: redirectUri,
     response_mode: 'query',
     scope: OL_SCOPES,
     prompt: 'select_account'
@@ -508,11 +514,12 @@ app.get('/api/outlook/callback', async (req, res) => {
     const { code } = req.query;
     if (!code) return res.status(400).send('Missing auth code');
 
+    const redirectUri = getOutlookRedirectUri(req);
     const r = await axios.post(`${MS_AUTH}/token`, new URLSearchParams({
       client_id: OL_CLIENT_ID,
       client_secret: OL_CLIENT_SECRET,
       code,
-      redirect_uri: OL_REDIRECT,
+      redirect_uri: redirectUri,
       grant_type: 'authorization_code',
       scope: OL_SCOPES
     }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
