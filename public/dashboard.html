@@ -38,6 +38,10 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.16.154-.352.23-.578.23h-8.26v-6.12l1.58 1.157a.49.49 0 00.348.126.538.538 0 00.348-.126.39.39 0 00.15-.31.4.4 0 00-.15-.3L14.93 11.23l2.27-1.867a.39.39 0 00.15-.302.39.39 0 00-.15-.3.53.53 0 00-.348-.127.49.49 0 00-.348.126l-1.58 1.158V7.137h8.26c.226 0 .417.077.578.23.158.153.238.346.238.577v-.557zM14.924 5.67v1.467H8.202V3.474L0 5.39v13.22l8.202 1.917V12.55h6.722v6.12h-6.722v1.466l9.592-1.916V7.587L14.924 5.67zM7.47 15.963c-.428.478-.985.717-1.67.717-.696 0-1.257-.237-1.684-.71-.428-.474-.642-1.085-.642-1.833 0-.78.218-1.41.653-1.895.435-.483.998-.726 1.69-.726.675 0 1.228.24 1.66.717.43.478.645 1.103.645 1.876 0 .78-.217 1.376-.652 1.854z"/></svg>
           Outlook
         </button>
+        <button class="tab" data-platform="todo" onclick="switchPlatform('todo')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          To Do
+        </button>
       </div>
 
       <!-- Page selector (for Facebook only) -->
@@ -93,6 +97,34 @@
         </div>
         <h2>Welcome to Fiori DM Dashboard</h2>
         <p>Select a conversation from the sidebar to view messages</p>
+      </div>
+
+      <!-- To Do view -->
+      <div class="todo-view hidden" id="todoView">
+        <div class="todo-top">
+          <div class="todo-top-left">
+            <h2 class="todo-title">To Do List</h2>
+            <p class="todo-subtitle">AI-extracted tasks from your messages</p>
+          </div>
+          <button class="todo-scan-btn" id="todoScanBtn" onclick="scanForTodos()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Scan Messages
+          </button>
+        </div>
+        <div class="todo-filters" id="todoFilters">
+          <button class="todo-filter active" data-filter="all" onclick="filterTodos('all')">All</button>
+          <button class="todo-filter" data-filter="high" onclick="filterTodos('high')">High Priority</button>
+          <button class="todo-filter" data-filter="facebook" onclick="filterTodos('facebook')">Facebook</button>
+          <button class="todo-filter" data-filter="instagram" onclick="filterTodos('instagram')">Instagram</button>
+          <button class="todo-filter" data-filter="outlook" onclick="filterTodos('outlook')">Outlook</button>
+        </div>
+        <div class="todo-meta hidden" id="todoMeta"></div>
+        <div id="todoList" class="todo-list">
+          <div class="todo-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            <p>Click <strong>Scan Messages</strong> to extract action items from your recent messages across all platforms</p>
+          </div>
+        </div>
       </div>
 
       <!-- Chat header -->

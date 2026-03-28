@@ -19,7 +19,9 @@ let state = {
   outlookUser: null,
   outlookFolders: [],
   outlookMessages: [],
-  activeEmail: null
+  activeEmail: null,
+  todoTasks: [],
+  todoFilter: 'all'
 };
 
 let pollMessageTimer = null;
@@ -222,6 +224,10 @@ async function loadOutlookFolders() {
       opt.textContent = `${f.displayName} (${f.unreadItemCount})`;
       select.appendChild(opt);
     });
+
+    // Default to Inbox folder
+    const inbox = data.find(f => f.displayName.toLowerCase() === 'inbox');
+    if (inbox) select.value = inbox.id;
   } catch (err) {
     console.warn('Failed to load folders:', err);
   }
@@ -427,6 +433,17 @@ function switchPlatform(platform) {
       document.getElementById('outlookNotConnected').classList.add('hidden');
       document.getElementById('outlookConnected').classList.remove('hidden');
     }
+  } else if (platform === 'todo') {
+    hideAllMainViews();
+    document.getElementById('todoView').classList.remove('hidden');
+    document.getElementById('conversationsLabel').textContent = 'Sources';
+    document.getElementById('conversationList').innerHTML =
+      '<div class="todo-sources">' +
+        '<div class="todo-source-item"><span class="todo-source-dot fb"></span>Facebook Messages</div>' +
+        '<div class="todo-source-item"><span class="todo-source-dot ig"></span>Instagram DMs</div>' +
+        '<div class="todo-source-item"><span class="todo-source-dot ol"></span>Outlook Emails</div>' +
+      '</div>';
+    if (state.todoTasks && state.todoTasks.length) renderTodos();
   }
 }
 
@@ -548,6 +565,7 @@ function hideAllMainViews() {
   document.getElementById('messagesContainer').classList.add('hidden');
   document.getElementById('composeBar').classList.add('hidden');
   document.getElementById('emailView').classList.add('hidden');
+  document.getElementById('todoView').classList.add('hidden');
   document.getElementById('messagesList').innerHTML = '';
 }
 
@@ -843,11 +861,16 @@ async function sendMessage() {
 
   try {
     if (state.platform === 'facebook') {
-      await fetch(`${API}/api/facebook/send/${state.activeConversation.id}`, {
+      const participants = state.activeConversation.participants?.data || [];
+      const other = participants.find(p => p.id !== state.selectedPage?.id) || participants[0];
+      if (!other) throw new Error('Could not find recipient');
+      const resp = await fetch(`${API}/api/facebook/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pageId: state.selectedPage.id, message: text })
+        body: JSON.stringify({ pageId: state.selectedPage.id, recipientId: other.id, message: text })
       });
+      const rData = await resp.json();
+      if (rData.error) throw new Error(rData.error.message || JSON.stringify(rData.error));
     } else if (state.platform === 'instagram') {
       const participants = state.activeConversation.participants?.data || [];
       const other = participants.find(p => p.id !== state.igUserId) || participants[0];
@@ -940,6 +963,107 @@ async function sendOutlookReply(text, input) {
   } catch (err) {
     toast('Failed to send reply: ' + (err.message || err), 'error');
   }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  TO DO LIST
+// ══════════════════════════════════════════════════════════════════════
+async function scanForTodos() {
+  const btn = document.getElementById('todoScanBtn');
+  const list = document.getElementById('todoList');
+  const meta = document.getElementById('todoMeta');
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Scanning...';
+  list.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+  meta.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${API}/api/todo/scan`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    state.todoTasks = data.tasks || [];
+
+    meta.classList.remove('hidden');
+    meta.innerHTML = `Scanned <strong>${data.messageCount}</strong> messages &middot; Found <strong>${state.todoTasks.length}</strong> task${state.todoTasks.length !== 1 ? 's' : ''} &middot; ${new Date(data.scannedAt).toLocaleTimeString()}`;
+
+    renderTodos();
+  } catch (err) {
+    list.innerHTML = `<div class="empty-state" style="color:var(--danger);height:auto;padding:20px;">Error: ${escHtml(err.message || String(err))}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Scan Messages';
+  }
+}
+
+function filterTodos(filter) {
+  state.todoFilter = filter;
+  document.querySelectorAll('.todo-filter').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.todo-filter[data-filter="${filter}"]`).classList.add('active');
+  renderTodos();
+}
+
+function renderTodos() {
+  const list = document.getElementById('todoList');
+  let tasks = state.todoTasks;
+
+  if (state.todoFilter === 'high') {
+    tasks = tasks.filter(t => t.priority === 'high');
+  } else if (['facebook', 'instagram', 'outlook'].includes(state.todoFilter)) {
+    tasks = tasks.filter(t => t.source === state.todoFilter);
+  }
+
+  if (!tasks.length) {
+    list.innerHTML = '<div class="empty-state" style="height:auto;padding:40px 20px;">' +
+      (state.todoTasks.length ? 'No tasks match this filter' : 'No action items found in your recent messages') + '</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  const today = new Date();
+
+  tasks.forEach((task, i) => {
+    const card = document.createElement('div');
+    card.className = `todo-card priority-${task.priority}`;
+
+    const platformClass = { facebook: 'fb', instagram: 'ig', outlook: 'ol' }[task.source] || '';
+    const platformLabel = { facebook: 'Facebook', instagram: 'Instagram', outlook: 'Outlook' }[task.source] || task.source;
+
+    let deadlineHtml = '';
+    if (task.deadline) {
+      const dl = new Date(task.deadline);
+      const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
+      let deadlineClass = 'todo-deadline';
+      if (diffDays < 0) deadlineClass += ' overdue';
+      else if (diffDays <= 1) deadlineClass += ' urgent';
+      else if (diffDays <= 7) deadlineClass += ' soon';
+
+      const label = diffDays < 0 ? 'Overdue' : diffDays === 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : task.deadlineText || dl.toLocaleDateString();
+      deadlineHtml = `<span class="${deadlineClass}">${escHtml(label)}</span>`;
+    } else if (task.deadlineText) {
+      deadlineHtml = `<span class="todo-deadline">${escHtml(task.deadlineText)}</span>`;
+    }
+
+    const priorityLabels = { high: 'High', medium: 'Med', low: 'Low' };
+
+    card.innerHTML = `
+      <div class="todo-card-left">
+        <input type="checkbox" class="todo-check" onchange="this.closest('.todo-card').classList.toggle('done')">
+      </div>
+      <div class="todo-card-body">
+        <div class="todo-card-title">${escHtml(task.title)}</div>
+        <div class="todo-card-details">
+          <span class="todo-badge ${platformClass}">${platformLabel}</span>
+          <span class="todo-from">${escHtml(task.from || '')}</span>
+          ${deadlineHtml}
+          <span class="todo-priority-pill ${task.priority}">${priorityLabels[task.priority] || task.priority}</span>
+        </div>
+        ${task.excerpt ? `<div class="todo-excerpt">"${escHtml(task.excerpt)}"</div>` : ''}
+      </div>
+    `;
+    list.appendChild(card);
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════════
