@@ -368,6 +368,9 @@ html, body {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.scroll-loader { height: 48px; }
+.scroll-loader .spinner { width: 20px; height: 20px; border-width: 2px; }
+
 /* ── Main Chat Area ───────────────────────────────────────────────── */
 #chatArea {
   flex: 1;

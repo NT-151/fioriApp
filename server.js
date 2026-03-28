@@ -3,10 +3,23 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+
+// Persistent read-state for Instagram conversations
+const IG_READ_FILE = path.join(__dirname, 'data', 'ig_read.json');
+
+function loadIgReadState() {
+  try { return JSON.parse(fs.readFileSync(IG_READ_FILE, 'utf8')); }
+  catch { return {}; }
+}
+
+function saveIgReadState(state) {
+  fs.writeFileSync(IG_READ_FILE, JSON.stringify(state, null, 2));
+}
 
 const app = express();
 app.use(cors());
@@ -322,6 +335,18 @@ app.get('/api/instagram/conversations', async (req, res) => {
     });
 
     const all = (r.data.data || []).map(c => ({ ...c, _igUserId: igUserId }));
+    let readState = loadIgReadState();
+
+    // First run: no read file exists yet — mark all current conversations as read
+    // so old already-seen messages don't show as unread
+    const isFirstRun = Object.keys(readState).length === 0;
+    if (isFirstRun) {
+      const now = new Date().toISOString();
+      for (const conv of all) {
+        readState[conv.id] = now;
+      }
+      saveIgReadState(readState);
+    }
 
     const unread = [];
     const read = [];
@@ -332,10 +357,17 @@ app.get('/api/instagram/conversations', async (req, res) => {
         lastMsg?.from?.id === igUserId ||
         lastMsg?.from?.username === igUsername;
 
-      if (!lastMsg || isFromMe) {
-        read.push({ ...conv, _unread: false });
-      } else {
+      // A conversation is unread ONLY if:
+      // 1. The last message is NOT from me, AND
+      // 2. The conversation has been updated AFTER we last marked it as read
+      const lastReadTime = readState[conv.id];
+      const isUnread = lastMsg && !isFromMe &&
+        (!lastReadTime || new Date(conv.updated_time) > new Date(lastReadTime));
+
+      if (isUnread) {
         unread.push({ ...conv, _unread: true });
+      } else {
+        read.push({ ...conv, _unread: false });
       }
     }
 
@@ -343,7 +375,7 @@ app.get('/api/instagram/conversations', async (req, res) => {
     unread.sort(byTime);
     read.sort(byTime);
 
-    const result = [...unread, ...read.slice(0, 10)];
+    const result = [...unread, ...read.slice(0, 50)];
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.response?.data?.error || err.message });
@@ -352,15 +384,42 @@ app.get('/api/instagram/conversations', async (req, res) => {
 
 app.get('/api/instagram/messages/:conversationId', async (req, res) => {
   try {
-    const r = await axios.get(`${IG_GRAPH}/${req.params.conversationId}`, {
-      params: {
-        access_token: IG_TOKEN,
-        fields: 'messages{id,message,from,created_time,attachments,is_echo}'
-      }
+    const cursor = req.query.cursor;
+    let messages, paging;
+
+    if (cursor) {
+      // Load older messages using the cursor URL
+      const r = await axios.get(cursor);
+      messages = r.data.data || [];
+      paging = r.data.paging;
+    } else {
+      // Load the most recent messages (first page only)
+      const r = await axios.get(`${IG_GRAPH}/${req.params.conversationId}`, {
+        params: {
+          access_token: IG_TOKEN,
+          fields: 'messages{id,message,from,created_time,attachments,is_echo}'
+        }
+      });
+      messages = r.data.messages?.data || [];
+      paging = r.data.messages?.paging;
+    }
+
+    res.json({
+      messages,
+      nextCursor: paging?.next || null
     });
-    res.json(r.data.messages?.data || []);
   } catch (err) {
-    res.status(500).json({ error: err.response?.data?.error || err.message });
+    const igErr = err.response?.data?.error;
+    const errMsg = igErr?.message || err.message || '';
+    const isTransient = igErr?.code === 4 || igErr?.code === 32 ||
+      errMsg.includes('limit') || err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT';
+    if (isTransient) {
+      console.warn('IG transient error on messages fetch:', err.code || errMsg);
+      res.json({ messages: [], nextCursor: null, rateLimited: true });
+    } else {
+      console.error('IG messages error:', igErr || err.message);
+      res.status(500).json({ error: igErr || err.message });
+    }
   }
 });
 
@@ -376,6 +435,15 @@ app.post('/api/instagram/send', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.response?.data?.error || err.message });
   }
+});
+
+app.post('/api/instagram/mark-read', (req, res) => {
+  const { conversationId } = req.body;
+  if (!conversationId) return res.status(400).json({ error: 'conversationId required' });
+  const readState = loadIgReadState();
+  readState[conversationId] = new Date().toISOString();
+  saveIgReadState(readState);
+  res.json({ ok: true });
 });
 
 // ══════════════════════════════════════════════════════════════════════
@@ -461,7 +529,22 @@ function getOutlookRedirectUri(req) {
   return `${proto}://${host}/api/outlook/callback`;
 }
 
-let outlookTokens = null; // { access_token, refresh_token, expires_at }
+const OL_TOKENS_FILE = path.join(__dirname, 'data', 'outlook_tokens.json');
+
+function loadOutlookTokens() {
+  try { return JSON.parse(fs.readFileSync(OL_TOKENS_FILE, 'utf8')); }
+  catch { return null; }
+}
+
+function saveOutlookTokens(tokens) {
+  if (tokens) {
+    fs.writeFileSync(OL_TOKENS_FILE, JSON.stringify(tokens, null, 2));
+  } else {
+    try { fs.unlinkSync(OL_TOKENS_FILE); } catch {}
+  }
+}
+
+let outlookTokens = loadOutlookTokens();
 
 async function refreshOutlookToken() {
   if (!outlookTokens?.refresh_token) return null;
@@ -479,9 +562,11 @@ async function refreshOutlookToken() {
       refresh_token: r.data.refresh_token || outlookTokens.refresh_token,
       expires_at: Date.now() + (r.data.expires_in * 1000) - 60000
     };
+    saveOutlookTokens(outlookTokens);
     return outlookTokens.access_token;
   } catch (err) {
     outlookTokens = null;
+    saveOutlookTokens(null);
     return null;
   }
 }
@@ -529,6 +614,7 @@ app.get('/api/outlook/callback', async (req, res) => {
       refresh_token: r.data.refresh_token,
       expires_at: Date.now() + (r.data.expires_in * 1000) - 60000
     };
+    saveOutlookTokens(outlookTokens);
 
     // Redirect back to dashboard on the Outlook tab
     res.send(`<html><body><script>window.location.href='/#outlook-connected';</script></body></html>`);
@@ -660,6 +746,7 @@ app.post('/api/outlook/send', async (req, res) => {
 // Disconnect
 app.post('/api/outlook/disconnect', (req, res) => {
   outlookTokens = null;
+  saveOutlookTokens(null);
   res.json({ success: true });
 });
 

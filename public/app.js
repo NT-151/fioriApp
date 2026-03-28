@@ -1,7 +1,7 @@
 const API = '';
 
-const POLL_MESSAGES_MS = 3000;   // poll active chat every 3s
-const POLL_CONVOS_MS   = 10000;  // poll conversation list every 10s
+const POLL_MESSAGES_MS = 10000;  // poll active chat every 10s
+const POLL_CONVOS_MS   = 30000;  // poll conversation list every 30s
 
 let state = {
   platform: 'instagram',
@@ -23,8 +23,15 @@ let state = {
 };
 
 let pollMessageTimer = null;
+let igNextCursor = null;
+let igLoadingOlder = false;
+
 let pollConvoTimer = null;
 let activeChatName = null; // track the name shown in chat header
+let platformGeneration = 0; // incremented on every platform switch to discard stale async results
+
+// Per-platform cache so switching tabs doesn't lose loaded data
+const platformCache = {};
 
 // ══════════════════════════════════════════════════════════════════════
 //  INIT
@@ -348,6 +355,10 @@ async function openEmail(msg) {
 //  PLATFORM SWITCHING
 // ══════════════════════════════════════════════════════════════════════
 function switchPlatform(platform) {
+  const prevPlatform = state.platform;
+  savePlatformCache(prevPlatform);
+
+  platformGeneration++;
   state.platform = platform;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.tab[data-platform="${platform}"]`).classList.add('active');
@@ -365,19 +376,71 @@ function switchPlatform(platform) {
   document.getElementById('conversationsLabel').textContent =
     platform === 'outlook' ? 'Emails' : 'Conversations';
 
+  // Restore from cache if available
+  const cached = platformCache[platform];
+  const hasCachedData = cached && (cached.conversations.length || (cached.outlookMessages || []).length);
+  if (hasCachedData) {
+    state.conversations = cached.conversations;
+    state.activeConversation = cached.activeConversation;
+    state.messages = cached.messages;
+    state.activeEmail = cached.activeEmail;
+    activeChatName = cached.activeChatName;
+    if (platform === 'instagram') igNextCursor = cached.igNextCursor;
+    if (platform === 'outlook') state.outlookMessages = cached.outlookMessages || [];
+
+    if (platform === 'outlook' && state.outlookMessages.length) {
+      renderOutlookMessages();
+    } else {
+      renderConversations();
+    }
+
+    if (platform === 'outlook' && state.activeEmail) {
+      // Outlook email view is already rendered via renderOutlookMessages click state
+    } else if (state.activeConversation && activeChatName) {
+      hideAllMainViews();
+      showChatArea(activeChatName);
+      renderMessages(true);
+      if (platform === 'instagram') setupScrollLoadMore();
+      startMessagePolling();
+    }
+
+    // Refresh conversations in the background
+    if (platform === 'facebook' || platform === 'instagram') {
+      startConvoPolling();
+    }
+  }
+
   if (platform === 'facebook') {
     fbSelector.classList.remove('hidden');
-    if (state.selectedPage) loadConversations();
+    if (!hasCachedData && state.selectedPage) loadConversations();
   } else if (platform === 'instagram') {
-    loadConversations();
+    if (!hasCachedData) loadConversations();
   } else if (platform === 'whatsapp') {
     waSelector.classList.remove('hidden');
     if (!state.waPhones.length) loadWaPhones();
     else if (state.selectedWaPhone) onWaPhoneChange();
   } else if (platform === 'outlook') {
     olSelector.classList.remove('hidden');
-    checkOutlookStatus();
+    if (!hasCachedData) checkOutlookStatus();
+    else {
+      // Restore Outlook connected UI state
+      document.getElementById('outlookNotConnected').classList.add('hidden');
+      document.getElementById('outlookConnected').classList.remove('hidden');
+    }
   }
+}
+
+function savePlatformCache(platform) {
+  if (!platform) return;
+  platformCache[platform] = {
+    conversations: state.conversations,
+    activeConversation: state.activeConversation,
+    messages: state.messages,
+    activeChatName,
+    igNextCursor: platform === 'instagram' ? igNextCursor : null,
+    activeEmail: state.activeEmail,
+    outlookMessages: platform === 'outlook' ? state.outlookMessages : []
+  };
 }
 
 function resetConversations() {
@@ -413,6 +476,7 @@ function startMessagePolling() {
 
 async function pollConversations() {
   if (state.platform !== 'facebook' && state.platform !== 'instagram') return;
+  const gen = platformGeneration;
 
   try {
     let url;
@@ -424,6 +488,7 @@ async function pollConversations() {
     }
 
     const res = await fetch(url);
+    if (gen !== platformGeneration) return;
     const data = await res.json();
     if (data.error) return;
 
@@ -435,6 +500,7 @@ async function pollConversations() {
 async function pollMessages() {
   if (!state.activeConversation) return;
   if (state.platform !== 'facebook' && state.platform !== 'instagram') return;
+  const gen = platformGeneration;
 
   try {
     let url;
@@ -445,25 +511,33 @@ async function pollMessages() {
     }
 
     const res = await fetch(url);
-    const data = await res.json();
-    if (data.error) return;
+    if (gen !== platformGeneration) return;
+    const raw = await res.json();
+    if (raw.error) return;
 
-    const newMessages = data.reverse();
+    // Instagram returns { messages, nextCursor }, Facebook returns an array
+    const latestPage = state.platform === 'instagram'
+      ? (raw.messages || []).reverse()
+      : (Array.isArray(raw) ? raw : raw.messages || raw).reverse();
+
     // Only re-render if message count changed (new message arrived)
     const oldIds = new Set(state.messages.filter(m => !m.id?.startsWith('temp_')).map(m => m.id));
-    const hasNew = newMessages.some(m => !oldIds.has(m.id));
+    const hasNew = latestPage.some(m => !oldIds.has(m.id));
 
-    if (hasNew || newMessages.length !== state.messages.filter(m => !m.id?.startsWith('temp_')).length) {
+    if (hasNew) {
       // Check if user was scrolled to bottom before update
       const container = document.getElementById('messagesContainer');
       const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
 
-      state.messages = newMessages;
-      renderMessages();
-
-      if (wasAtBottom) {
-        container.scrollTop = container.scrollHeight;
+      // Merge: keep older loaded messages + replace the recent page with fresh data
+      if (state.platform === 'instagram') {
+        const latestIds = new Set(latestPage.map(m => m.id));
+        const olderOnly = state.messages.filter(m => !latestIds.has(m.id) && !m.id?.startsWith('temp_'));
+        state.messages = [...olderOnly, ...latestPage];
+      } else {
+        state.messages = latestPage;
       }
+      renderMessages(wasAtBottom);
     }
   } catch (_) {}
 }
@@ -490,6 +564,7 @@ async function loadConversations() {
     return;
   }
 
+  const gen = platformGeneration;
   const list = document.getElementById('conversationList');
   list.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
 
@@ -503,10 +578,12 @@ async function loadConversations() {
       url = `${API}/api/facebook/conversations/${state.selectedPage.id}`;
     } else if (state.platform === 'instagram') {
       await loadIgProfile();
+      if (gen !== platformGeneration) return;
       url = `${API}/api/instagram/conversations`;
     }
 
     const res = await fetch(url);
+    if (gen !== platformGeneration) return;
     const data = await res.json();
     if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
 
@@ -596,6 +673,17 @@ async function openConversation(conv, name) {
 
   state.activeConversation = conv;
   activeChatName = name;
+
+  // Mark this conversation as read on the server
+  if (state.platform === 'instagram' && conv._unread) {
+    conv._unread = false;
+    fetch(`${API}/api/instagram/mark-read`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversationId: conv.id })
+    }).catch(() => {});
+  }
+
   renderConversations();
 
   hideAllMainViews();
@@ -616,8 +704,15 @@ async function openConversation(conv, name) {
     const data = await res.json();
     if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
 
-    state.messages = data.reverse();
-    renderMessages();
+    if (state.platform === 'instagram') {
+      igNextCursor = data.nextCursor || null;
+      state.messages = (data.messages || []).reverse();
+      setupScrollLoadMore();
+    } else {
+      state.messages = (Array.isArray(data) ? data : data.messages || data).reverse();
+    }
+
+    renderMessages(true);
     startMessagePolling();
   } catch (err) {
     msgList.innerHTML = `<div class="empty-state" style="color:var(--danger)">Error loading messages: ${err.message}</div>`;
@@ -625,7 +720,7 @@ async function openConversation(conv, name) {
   }
 }
 
-function renderMessages() {
+function renderMessages(autoScroll = false) {
   const msgList = document.getElementById('messagesList');
   msgList.innerHTML = '';
 
@@ -672,7 +767,53 @@ function renderMessages() {
   });
 
   const container = document.getElementById('messagesContainer');
-  container.scrollTop = container.scrollHeight;
+  if (autoScroll) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+function setupScrollLoadMore() {
+  const container = document.getElementById('messagesContainer');
+  container.onscroll = async () => {
+    if (state.platform !== 'instagram' || !igNextCursor || igLoadingOlder) return;
+    if (container.scrollTop > 100) return;
+
+    igLoadingOlder = true;
+
+    // Show spinner at the top
+    const msgList = document.getElementById('messagesList');
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner scroll-loader';
+    spinner.innerHTML = '<div class="spinner"></div>';
+    msgList.prepend(spinner);
+    container.scrollTop = spinner.offsetHeight;
+
+    const prevScrollHeight = container.scrollHeight;
+
+    try {
+      const res = await fetch(`${API}/api/instagram/messages/${state.activeConversation.id}?cursor=${encodeURIComponent(igNextCursor)}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const olderMessages = (data.messages || []).reverse();
+      igNextCursor = data.nextCursor || null;
+
+      const spinnerH = spinner.offsetHeight;
+      spinner.remove();
+
+      if (data.rateLimited) {
+        toast('Instagram rate limit — try scrolling up again in a minute', 'error');
+      } else if (olderMessages.length) {
+        state.messages = [...olderMessages, ...state.messages];
+        renderMessages();
+        container.scrollTop = container.scrollHeight - prevScrollHeight + spinnerH;
+      }
+    } catch (_) {
+      spinner.remove();
+    }
+
+    igLoadingOlder = false;
+  };
 }
 
 function isFromMe(msg) {
@@ -726,7 +867,7 @@ async function sendMessage() {
       created_time: new Date().toISOString(),
       is_echo: true
     });
-    renderMessages();
+    renderMessages(true);
     toast('Message sent!', 'success');
 
     // Quick poll to get the confirmed message from API
