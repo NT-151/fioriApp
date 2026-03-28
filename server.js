@@ -771,7 +771,7 @@ app.get('/api/todo/scan', async (req, res) => {
     try {
       const info = await getFbPageInfo();
       for (const page of info.pages) {
-        const token = page.access_token;
+        const token = page.token;
         const convRes = await axios.get(`${FB_GRAPH}/${page.id}/conversations`, {
           params: { access_token: token, fields: 'id,participants', limit: 15 }
         });
@@ -870,12 +870,16 @@ IMPORTANT: Only extract genuine action items. Do not create tasks from casual co
 
 For each task, return a JSON array with objects having these fields:
 - "title": concise action item (under 80 chars)
+- "description": a detailed 2-3 sentence explanation of what needs to be done, including any relevant context from the message
 - "deadline": ISO date string if detectable, or null
 - "deadlineText": human-readable deadline text if mentioned (e.g., "by Friday"), or null
 - "source": "facebook" | "instagram" | "outlook"
 - "from": who the message is from (name or email)
 - "priority": "high" | "medium" | "low" based on urgency cues
-- "excerpt": the relevant sentence from the message (under 150 chars)
+- "reason": a short explanation of WHY this is the assigned priority (e.g., "Explicit deadline tomorrow", "Client waiting on response", "No urgency mentioned")
+- "suggestedAction": a brief recommended next step (e.g., "Reply with the requested document", "Schedule a meeting for next week", "Forward to the design team")
+- "excerpt": the relevant sentence(s) from the original message (under 200 chars)
+- "category": one of "reply" | "meeting" | "deliverable" | "follow-up" | "review" | "other"
 
 If there are no actionable items, return an empty array [].
 Return ONLY valid JSON. No explanation, no markdown.

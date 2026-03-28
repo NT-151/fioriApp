@@ -1046,20 +1046,37 @@ function renderTodos() {
     }
 
     const priorityLabels = { high: 'High', medium: 'Med', low: 'Low' };
+    const categoryIcons = {
+      reply: '&#9993;', meeting: '&#128197;', deliverable: '&#128230;',
+      'follow-up': '&#128260;', review: '&#128270;', other: '&#128203;'
+    };
+    const categoryLabels = {
+      reply: 'Reply needed', meeting: 'Meeting', deliverable: 'Deliverable',
+      'follow-up': 'Follow-up', review: 'Review', other: 'Task'
+    };
 
     card.innerHTML = `
       <div class="todo-card-left">
-        <input type="checkbox" class="todo-check" onchange="this.closest('.todo-card').classList.toggle('done')">
+        <input type="checkbox" class="todo-check" onchange="event.stopPropagation(); this.closest('.todo-card').classList.toggle('done')">
       </div>
-      <div class="todo-card-body">
-        <div class="todo-card-title">${escHtml(task.title)}</div>
+      <div class="todo-card-body" onclick="this.closest('.todo-card').classList.toggle('expanded')">
+        <div class="todo-card-header">
+          <div class="todo-card-title">${escHtml(task.title)}</div>
+          <svg class="todo-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
         <div class="todo-card-details">
           <span class="todo-badge ${platformClass}">${platformLabel}</span>
           <span class="todo-from">${escHtml(task.from || '')}</span>
+          ${task.category ? `<span class="todo-category">${categoryIcons[task.category] || ''} ${categoryLabels[task.category] || task.category}</span>` : ''}
           ${deadlineHtml}
           <span class="todo-priority-pill ${task.priority}">${priorityLabels[task.priority] || task.priority}</span>
         </div>
-        ${task.excerpt ? `<div class="todo-excerpt">"${escHtml(task.excerpt)}"</div>` : ''}
+        <div class="todo-expanded-content">
+          ${task.description ? `<div class="todo-section"><div class="todo-section-label">Description</div><div class="todo-section-text">${escHtml(task.description)}</div></div>` : ''}
+          ${task.suggestedAction ? `<div class="todo-section"><div class="todo-section-label">Suggested Action</div><div class="todo-section-text todo-action">${escHtml(task.suggestedAction)}</div></div>` : ''}
+          ${task.excerpt ? `<div class="todo-section"><div class="todo-section-label">Original Message</div><div class="todo-section-text todo-excerpt">"${escHtml(task.excerpt)}"</div></div>` : ''}
+          ${task.reason ? `<div class="todo-section"><div class="todo-section-label">Priority Reason</div><div class="todo-section-text">${escHtml(task.reason)}</div></div>` : ''}
+        </div>
       </div>
     `;
     list.appendChild(card);

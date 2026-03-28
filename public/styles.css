@@ -829,6 +829,7 @@ html, body {
 
 .todo-card.done { opacity: 0.4; }
 .todo-card.done .todo-card-title { text-decoration: line-through; }
+.todo-card-body { cursor: pointer; }
 
 .todo-card-left { padding-top: 2px; }
 
@@ -840,6 +841,22 @@ html, body {
 }
 
 .todo-card-body { flex: 1; min-width: 0; }
+
+.todo-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.todo-chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform var(--transition);
+  margin-top: 2px;
+}
+
+.todo-card.expanded .todo-chevron { transform: rotate(180deg); }
 
 .todo-card-title {
   font-size: 14px;
@@ -895,15 +912,50 @@ html, body {
 .todo-priority-pill.medium { background: rgba(245,158,11,0.12); color: #fbbf24; }
 .todo-priority-pill.low { background: rgba(136,136,164,0.12); color: var(--text-muted); }
 
-.todo-excerpt {
-  font-size: 12px;
+/* ── Expanded card content ──────────────────────────────────────────── */
+.todo-expanded-content {
+  display: none;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.todo-card.expanded .todo-expanded-content { display: block; }
+
+.todo-section {
+  margin-bottom: 12px;
+}
+
+.todo-section:last-child { margin-bottom: 0; }
+
+.todo-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.todo-section-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.todo-section-text.todo-action {
+  color: var(--accent-hover);
+  font-weight: 500;
+}
+
+.todo-section-text.todo-excerpt {
   font-style: italic;
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.todo-category {
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 /* ── To Do sidebar sources ─────────────────────────────────────────── */
