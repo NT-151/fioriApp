@@ -328,12 +328,12 @@ app.get('/api/instagram/conversations', async (req, res) => {
     const igUserId = meRes.data.user_id;
     const igUsername = meRes.data.username;
 
-    // Fetch conversations with only 1 message each (the latest) to stay under API limits
+    // Fetch conversations with last 5 messages so we can apply read-heuristics
     const r = await axios.get(`${IG_GRAPH}/me/conversations`, {
       params: {
         access_token: IG_TOKEN,
         platform: 'instagram',
-        fields: 'id,updated_time,participants,messages.limit(1){id,message,from,created_time,is_echo}',
+        fields: 'id,updated_time,participants,messages.limit(5){id,message,from,created_time,is_echo}',
         limit: 50
       }
     });
@@ -352,21 +352,49 @@ app.get('/api/instagram/conversations', async (req, res) => {
       saveIgReadState(readState);
     }
 
+    const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+    const now = Date.now();
     const unread = [];
     const read = [];
 
     for (const conv of all) {
-      const lastMsg = conv.messages?.data?.[0];
-      const isFromMe = lastMsg?.is_echo ||
-        lastMsg?.from?.id === igUserId ||
-        lastMsg?.from?.username === igUsername;
+      const msgs = conv.messages?.data || [];
+      const lastMsg = msgs[0];
 
-      // A conversation is unread ONLY if:
-      // 1. The last message is NOT from me, AND
-      // 2. The conversation has been updated AFTER we last marked it as read
+      const isMsgFromMe = (m) =>
+        m?.is_echo || m?.from?.id === igUserId || m?.from?.username === igUsername;
+
+      const lastMsgIsFromMe = isMsgFromMe(lastMsg);
+
+      // Heuristic 1 — Reply: if I replied after the most recent incoming
+      // message, I must have seen it (e.g. replied on phone)
+      let repliedAfterIncoming = false;
+      if (!lastMsgIsFromMe) {
+        // Find the first (most recent) message from me in the batch
+        const myReply = msgs.find(m => isMsgFromMe(m));
+        if (myReply) {
+          // Check if any incoming message is newer than my reply
+          const lastIncoming = msgs.find(m => !isMsgFromMe(m));
+          if (lastIncoming && myReply &&
+              new Date(myReply.created_time) > new Date(lastIncoming.created_time)) {
+            repliedAfterIncoming = true;
+          }
+        }
+      }
+
+      // Heuristic 2 — Age: if the last incoming message is older than
+      // 12 hours, assume it has been read elsewhere
+      const lastMsgAge = lastMsg ? now - new Date(lastMsg.created_time).getTime() : 0;
+      const isStale = lastMsgAge > TWELVE_HOURS;
+
       const lastReadTime = readState[conv.id];
-      const isUnread = lastMsg && !isFromMe &&
+      const isUnread = lastMsg && !lastMsgIsFromMe && !repliedAfterIncoming && !isStale &&
         (!lastReadTime || new Date(conv.updated_time) > new Date(lastReadTime));
+
+      // If a heuristic marked it as read, persist so it stays read on refresh
+      if (!isUnread && !lastReadTime) {
+        readState[conv.id] = new Date().toISOString();
+      }
 
       if (isUnread) {
         unread.push({ ...conv, _unread: true });
@@ -374,6 +402,9 @@ app.get('/api/instagram/conversations', async (req, res) => {
         read.push({ ...conv, _unread: false });
       }
     }
+
+    // Persist any heuristic-driven read state updates
+    saveIgReadState(readState);
 
     const byTime = (a, b) => new Date(b.updated_time) - new Date(a.updated_time);
     unread.sort(byTime);
