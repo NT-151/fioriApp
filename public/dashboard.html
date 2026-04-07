@@ -57,6 +57,18 @@
             </svg>
             <span>Messages</span>
           </button>
+          <button class="nav-item" data-nav="notes" onclick="switchNav('notes')" title="Notes">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>Notes</span>
+          </button>
+          <button class="nav-item" data-nav="contacts" onclick="switchNav('contacts')" title="Contacts">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            <span>Contacts</span>
+          </button>
+          <button class="nav-item" data-nav="settings" onclick="switchNav('settings')" title="Settings">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            <span>Settings</span>
+          </button>
         </div>
       </nav>
 
@@ -295,78 +307,246 @@
           </div>
         </main>
 
-        <!-- To Do Panel (right side) -->
-        <aside id="todoPanel">
-          <div class="todo-panel-header">
-            <div class="todo-panel-title-row">
-              <h3 class="todo-panel-title">To Do</h3>
-              <button class="todo-scan-btn" id="todoScanBtn" onclick="scanForTodos()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                Scan
-              </button>
-            </div>
-            <p class="todo-panel-subtitle">AI-extracted tasks</p>
-            <div class="todo-filters" id="todoFilters">
-              <button class="todo-filter active" data-filter="all" onclick="filterTodos('all')">All</button>
-              <button class="todo-filter" data-filter="high" onclick="filterTodos('high')">High</button>
-              <button class="todo-filter" data-filter="facebook" onclick="filterTodos('facebook')">FB</button>
-              <button class="todo-filter" data-filter="instagram" onclick="filterTodos('instagram')">IG</button>
-              <button class="todo-filter" data-filter="outlook" onclick="filterTodos('outlook')">OL</button>
-            </div>
-          </div>
-          <div class="todo-meta hidden" id="todoMeta"></div>
-          <div id="todoList" class="todo-list">
-            <div class="todo-empty">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-              <p>Click <strong>Scan</strong> to extract action items from your messages</p>
-            </div>
-          </div>
-        </aside>
       </div>
       <!-- end messagesSection -->
+
+      <!-- Notes Section -->
+      <div id="notesSection" class="nav-section hidden">
+        <div class="notes-app">
+          <!-- Notes sub-nav -->
+          <div class="notes-subnav">
+            <button class="notes-tab active" data-ntab="clinical" onclick="switchNotesTab('clinical')">Clinical Notes</button>
+            <button class="notes-tab" data-ntab="lots" onclick="switchNotesTab('lots')">Lot Scanner</button>
+            <button class="notes-tab" data-ntab="patients" onclick="switchNotesTab('patients')">Patients</button>
+          </div>
+
+          <!-- Clinical Notes sub-section -->
+          <div id="ntab-clinical" class="notes-tabcontent">
+            <div class="notes-content-area">
+              <div id="n-input-section" class="n-card">
+                <label class="n-label" for="n-transcript">Paste consultation transcript</label>
+                <textarea id="n-transcript" class="n-textarea" placeholder="Paste your audio transcript here..." rows="10"></textarea>
+                <div class="n-actions">
+                  <button id="n-clear-btn" class="n-btn-secondary" disabled>Clear</button>
+                  <button id="n-extract-btn" class="n-btn-primary" disabled>Extract Notes</button>
+                </div>
+              </div>
+
+              <div id="n-loading" class="n-card hidden">
+                <div class="n-loader"></div>
+                <p>Extracting clinical notes...</p>
+              </div>
+
+              <div id="n-output-section" class="n-card hidden">
+                <div class="n-card-header">
+                  <h3>Extracted Notes</h3>
+                  <div class="n-card-actions">
+                    <button id="n-copy-btn" class="n-btn-icon" title="Copy to clipboard">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    </button>
+                    <button id="n-new-btn" class="n-btn-secondary n-btn-sm">New</button>
+                  </div>
+                </div>
+                <div id="n-output" class="n-notes-body"></div>
+                <button id="n-save-to-patient-btn" class="n-btn-primary" style="margin-top:12px;">Save to Patient</button>
+              </div>
+
+              <div id="n-patient-picker" class="n-card hidden">
+                <h3>Save Note to Patient</h3>
+                <p class="n-hint">Select a patient to save these notes to.</p>
+                <div id="n-picker-list" class="n-patient-list"></div>
+                <p id="n-picker-empty" class="n-empty hidden">No patients yet. Create one on the Patients tab first.</p>
+                <div class="n-actions"><button id="n-cancel-picker" class="n-btn-secondary">Cancel</button></div>
+              </div>
+
+              <div id="n-error-section" class="n-card hidden">
+                <p class="n-error" id="n-error-msg"></p>
+                <button id="n-retry-btn" class="n-btn-primary">Try Again</button>
+              </div>
+
+              <div id="n-history-section" class="n-card hidden">
+                <div class="n-card-header">
+                  <h3>Notes History</h3>
+                  <div class="n-card-actions">
+                    <button id="n-copy-history-btn" class="n-btn-icon" title="Copy all">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    </button>
+                    <button id="n-clear-history-btn" class="n-btn-secondary n-btn-sm">Clear All</button>
+                  </div>
+                </div>
+                <div id="n-history-output" class="n-results-grid"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lot Scanner sub-section -->
+          <div id="ntab-lots" class="notes-tabcontent hidden">
+            <div class="notes-content-area">
+              <div id="n-upload-section" class="n-card">
+                <label class="n-label">Upload photos of product boxes</label>
+                <div id="n-drop-zone" class="n-drop-zone">
+                  <input type="file" id="n-file-input" accept="image/*" multiple hidden>
+                  <div id="n-drop-placeholder" class="n-drop-placeholder">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                    <p>Tap to upload photos</p>
+                    <p class="n-hint">Supports JPG, PNG, HEIC &middot; Multiple images</p>
+                  </div>
+                </div>
+                <div id="n-preview-grid" class="n-preview-grid hidden"></div>
+                <div class="n-actions">
+                  <button id="n-add-more-btn" class="n-btn-secondary hidden">+ Add More</button>
+                  <button id="n-clear-all-btn" class="n-btn-secondary hidden">Clear All</button>
+                  <button id="n-scan-btn" class="n-btn-primary" disabled>Scan Products</button>
+                </div>
+              </div>
+
+              <div id="n-scan-loading" class="n-card hidden">
+                <div class="n-loader"></div>
+                <p>Scanning for lot numbers and expiry dates...</p>
+              </div>
+
+              <div id="n-scan-results" class="n-card hidden">
+                <div class="n-card-header">
+                  <h3>Scan Results</h3>
+                  <div class="n-card-actions">
+                    <button id="n-scan-copy-btn" class="n-btn-icon" title="Copy to clipboard">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    </button>
+                    <button id="n-new-scan-btn" class="n-btn-secondary n-btn-sm">New Scan</button>
+                  </div>
+                </div>
+                <div id="n-scan-output" class="n-results-grid"></div>
+                <button id="n-link-patient-btn" class="n-btn-primary" style="margin-top:12px;">Link to Patient</button>
+              </div>
+
+              <div id="n-lot-picker" class="n-card hidden">
+                <h3>Link Lots to Patient</h3>
+                <p class="n-hint">Select a patient. A scanned lot can be linked to multiple patients.</p>
+                <div id="n-lot-picker-list" class="n-patient-list"></div>
+                <p id="n-lot-picker-empty" class="n-empty hidden">No patients yet.</p>
+                <div class="n-actions"><button id="n-cancel-lot-picker" class="n-btn-secondary">Cancel</button></div>
+              </div>
+
+              <div id="n-scan-error" class="n-card hidden">
+                <p class="n-error" id="n-scan-error-msg"></p>
+                <button id="n-scan-retry-btn" class="n-btn-primary">Try Again</button>
+              </div>
+
+              <div id="n-scan-history" class="n-card hidden">
+                <div class="n-card-header">
+                  <h3>Scan History</h3>
+                  <div class="n-card-actions">
+                    <button id="n-copy-scan-history-btn" class="n-btn-icon" title="Copy all">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    </button>
+                    <button id="n-clear-scan-history-btn" class="n-btn-secondary n-btn-sm">Clear All</button>
+                  </div>
+                </div>
+                <div id="n-scan-history-output" class="n-results-grid"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Patients sub-section -->
+          <div id="ntab-patients" class="notes-tabcontent hidden">
+            <div class="notes-content-area">
+              <!-- Patient list -->
+              <div id="n-patients-list" class="n-card">
+                <div class="n-card-header">
+                  <h3>All Patients</h3>
+                  <button id="n-add-patient-btn" class="n-btn-secondary n-btn-sm">+ New</button>
+                </div>
+                <input type="text" id="n-patient-search" class="n-text-input" placeholder="Search patients..." style="margin-bottom:12px;">
+                <div id="n-patient-list" class="n-patient-list"></div>
+                <p id="n-no-patients" class="n-empty hidden">No patients yet. Tap + New to add one.</p>
+              </div>
+
+              <!-- Create/Edit Patient -->
+              <div id="n-create-section" class="n-card hidden">
+                <h3 id="n-form-title">New Patient</h3>
+                <input type="hidden" id="n-edit-patient-id">
+                <div class="n-form-group">
+                  <label class="n-label" for="n-patient-name">Name</label>
+                  <input type="text" id="n-patient-name" class="n-text-input" placeholder="Full name">
+                </div>
+                <div class="n-form-group">
+                  <label class="n-label" for="n-patient-dob">Date of Birth</label>
+                  <input type="date" id="n-patient-dob" class="n-text-input">
+                </div>
+                <div class="n-form-group">
+                  <label class="n-label" for="n-patient-phone">Phone</label>
+                  <input type="tel" id="n-patient-phone" class="n-text-input" placeholder="Phone number">
+                </div>
+                <div class="n-actions">
+                  <button id="n-cancel-create-btn" class="n-btn-secondary">Cancel</button>
+                  <button id="n-save-patient-btn" class="n-btn-primary" disabled>Save</button>
+                </div>
+              </div>
+
+              <!-- Patient Detail -->
+              <div id="n-detail-section" class="hidden">
+                <div class="n-card">
+                  <div class="n-card-header">
+                    <button id="n-back-btn" class="n-btn-icon" title="Back">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    </button>
+                    <div class="n-card-actions">
+                      <button id="n-edit-patient-btn" class="n-btn-icon" title="Edit">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button id="n-delete-patient-btn" class="n-btn-icon n-btn-danger" title="Delete patient">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div id="n-patient-info"></div>
+                </div>
+
+                <div class="n-card">
+                  <div class="n-card-header">
+                    <h3>Notes</h3>
+                    <div class="n-dropdown-wrap">
+                      <button id="n-link-note-btn" class="n-btn-secondary n-btn-sm">+ Link Note</button>
+                      <div id="n-note-dropdown" class="n-dropdown hidden">
+                        <div class="n-dropdown-head"><span>Select notes to link</span><button id="n-close-note-dd" class="n-btn-icon n-btn-xs" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+                        <div id="n-note-picker-list" class="n-dropdown-list"></div>
+                        <p id="n-no-avail-notes" class="n-empty hidden">No notes in history.</p>
+                        <button id="n-confirm-note-link" class="n-btn-primary n-btn-sm n-dropdown-confirm hidden" disabled>Link Selected</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="n-patient-notes" class="n-results-grid"></div>
+                  <p id="n-no-notes" class="n-empty">No notes linked yet.</p>
+                </div>
+
+                <div class="n-card">
+                  <div class="n-card-header">
+                    <h3>Linked Lots</h3>
+                    <div class="n-dropdown-wrap">
+                      <button id="n-link-lot-detail-btn" class="n-btn-secondary n-btn-sm">+ Link Lot</button>
+                      <div id="n-lot-dropdown" class="n-dropdown hidden">
+                        <div class="n-dropdown-head"><span>Select lots to link</span><button id="n-close-lot-dd" class="n-btn-icon n-btn-xs" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+                        <div id="n-lot-picker-detail-list" class="n-dropdown-list"></div>
+                        <p id="n-no-avail-lots" class="n-empty hidden">No scanned lots available.</p>
+                        <button id="n-confirm-lot-link" class="n-btn-primary n-btn-sm n-dropdown-confirm hidden" disabled>Link Selected</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="n-patient-lots" class="n-results-grid"></div>
+                  <p id="n-no-lots" class="n-empty">No lots linked yet.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Contacts Section -->
       <div id="contactsSection" class="nav-section hidden">
         <div class="placeholder-section">
-          <svg
-            width="64"
-            height="64"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 00-3-3.87" />
-            <path d="M16 3.13a4 4 0 010 7.75" />
-          </svg>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           <h2>Contacts</h2>
           <p>Contact management coming soon</p>
-        </div>
-      </div>
-
-      <!-- Analytics Section -->
-      <div id="analyticsSection" class="nav-section hidden">
-        <div class="placeholder-section">
-          <svg
-            width="64"
-            height="64"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          <h2>Analytics</h2>
-          <p>Analytics dashboard coming soon</p>
         </div>
       </div>
 
@@ -392,9 +572,38 @@
           <p>App settings coming soon</p>
         </div>
       </div>
+
+      <!-- To Do Panel (right side, always visible) -->
+      <aside id="todoPanel">
+        <div class="todo-panel-header">
+          <div class="todo-panel-title-row">
+            <h3 class="todo-panel-title">To Do</h3>
+            <button class="todo-scan-btn" id="todoScanBtn" onclick="scanForTodos()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              Scan
+            </button>
+          </div>
+          <p class="todo-panel-subtitle">AI-extracted tasks</p>
+          <div class="todo-filters" id="todoFilters">
+            <button class="todo-filter active" data-filter="all" onclick="filterTodos('all')">All</button>
+            <button class="todo-filter" data-filter="high" onclick="filterTodos('high')">High</button>
+            <button class="todo-filter" data-filter="facebook" onclick="filterTodos('facebook')">FB</button>
+            <button class="todo-filter" data-filter="instagram" onclick="filterTodos('instagram')">IG</button>
+            <button class="todo-filter" data-filter="outlook" onclick="filterTodos('outlook')">OL</button>
+          </div>
+        </div>
+        <div class="todo-meta hidden" id="todoMeta"></div>
+        <div id="todoList" class="todo-list">
+          <div class="todo-empty">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            <p>Click <strong>Scan</strong> to extract action items from your messages</p>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <div id="toastContainer"></div>
     <script src="/app.js"></script>
+    <script src="/notes.js"></script>
   </body>
 </html>

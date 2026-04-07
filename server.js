@@ -10,10 +10,11 @@ const { router: instagramRouter } = require('./routes/instagram');
 const { router: whatsappRouter } = require('./routes/whatsapp');
 const { router: outlookRouter } = require('./routes/outlook');
 const { router: todoRouter } = require('./routes/todo');
+const { router: notesRouter } = require('./routes/notes');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '100mb' }));
 app.use(cookieParser());
 
 // Auth routes (public)
@@ -35,6 +36,7 @@ app.use('/api/instagram', instagramRouter);
 app.use('/api/whatsapp', whatsappRouter);
 app.use('/api/outlook', outlookRouter);
 app.use('/api/todo', todoRouter);
+app.use('/api/notes', notesRouter);
 
 // Catch-all: serve login or dashboard
 app.get('/', (req, res) => {
