@@ -52,10 +52,14 @@ public/
   styles.css           — All styles
   app.js               — Messages/DM frontend logic
   notes.js             — Clinical notes, lot scanner, patients frontend logic
-data/
-  patients.json        — Patient data (server-managed)
+data/                    — All data files (gitignored, created automatically)
   ig_read.json         — Instagram read-state tracking
   outlook_tokens.json  — Outlook OAuth tokens (auto-generated)
+  notes_patients.json  — Patient records
+  notes_patientNotes.json — Clinical notes linked to patients
+  notes_notesHistory.json — Notes extraction history
+  notes_scanHistory.json  — Lot scan history
+  notes_lotLinks.json  — Lot-to-patient links
 ```
 
 ## Key Features
@@ -73,7 +77,7 @@ data/
 - **Backend**: Node.js, Express
 - **Frontend**: Vanilla HTML/CSS/JS (no framework)
 - **APIs**: Meta Graph API (Facebook/Instagram/WhatsApp), Microsoft Graph (Outlook), Anthropic Claude API
-- **Storage**: JSON files (server-side), localStorage (client-side for notes/patients)
+- **Storage**: JSON files in `data/` (server-side, gitignored)
 - **Auth**: bcrypt password hashing, HMAC-signed session tokens
 
 ## Common Tasks

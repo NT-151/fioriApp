@@ -2,7 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const cookieParser = require('cookie-parser');
+
+// Ensure data directory exists (gitignored)
+const dataDir = path.join(__dirname, 'data');
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 const { router: authRouter, requireAuth, isAuthenticated } = require('./routes/auth');
 const { router: facebookRouter } = require('./routes/facebook');

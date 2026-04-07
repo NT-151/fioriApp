@@ -10,20 +10,48 @@ function switchNotesTab(tab) {
   document.getElementById('ntab-' + tab).classList.remove('hidden');
 }
 
-// ── Shared helpers (localStorage) ──
+// ── Shared helpers (server-backed storage with local cache) ──
 function nGenerateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
-function nGetPatients() { try { return JSON.parse(localStorage.getItem('nPatients') || '[]'); } catch { return []; } }
-function nSavePatients(a) { localStorage.setItem('nPatients', JSON.stringify(a)); }
-function nGetPatientNotes() { try { return JSON.parse(localStorage.getItem('nPatientNotes') || '[]'); } catch { return []; } }
-function nSavePatientNotes(a) { localStorage.setItem('nPatientNotes', JSON.stringify(a)); }
-function nGetLotLinks() { try { return JSON.parse(localStorage.getItem('nLotLinks') || '[]'); } catch { return []; } }
-function nSaveLotLinks(a) { localStorage.setItem('nLotLinks', JSON.stringify(a)); }
-function nGetNotesHistory() { try { return JSON.parse(localStorage.getItem('nNotesHistory') || '[]'); } catch { return []; } }
-function nSaveNotesHistory(a) { localStorage.setItem('nNotesHistory', JSON.stringify(a)); }
-function nGetScanHistory() { try { return JSON.parse(localStorage.getItem('nScanHistory') || '[]'); } catch { return []; } }
-function nSaveScanHistory(a) { localStorage.setItem('nScanHistory', JSON.stringify(a)); }
+
+// Local cache — loaded from server on init, written back on every save
+const _nCache = { patients: null, patientNotes: null, lotLinks: null, notesHistory: null, scanHistory: null };
+
+async function _nLoad(store) {
+  if (_nCache[store] !== null) return _nCache[store];
+  try {
+    const res = await fetch(`/api/notes/data/${store}`);
+    _nCache[store] = await res.json();
+  } catch { _nCache[store] = []; }
+  return _nCache[store];
+}
+
+function _nSave(store, data) {
+  _nCache[store] = data;
+  fetch(`/api/notes/data/${store}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).catch(err => console.warn('Failed to save ' + store, err));
+}
+
+// Sync getters (read from cache — must call nInitData() first)
+function nGetPatients() { return _nCache.patients || []; }
+function nSavePatients(a) { _nSave('patients', a); }
+function nGetPatientNotes() { return _nCache.patientNotes || []; }
+function nSavePatientNotes(a) { _nSave('patientNotes', a); }
+function nGetLotLinks() { return _nCache.lotLinks || []; }
+function nSaveLotLinks(a) { _nSave('lotLinks', a); }
+function nGetNotesHistory() { return _nCache.notesHistory || []; }
+function nSaveNotesHistory(a) { _nSave('notesHistory', a); }
+function nGetScanHistory() { return _nCache.scanHistory || []; }
+function nSaveScanHistory(a) { _nSave('scanHistory', a); }
+
+// Load all stores from server on startup
+async function nInitData() {
+  await Promise.all(Object.keys(_nCache).map(s => _nLoad(s)));
+}
 function nEsc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function nFormatDob(d) { if (!d) return ''; const dt = new Date(d + 'T00:00:00'); return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }); }
 function nFormatNotes(t) { return t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'); }
@@ -39,7 +67,7 @@ async function nCopyText(text, btn) {
 // ══════════════════════════════════════════════════════════════════════
 //  CLINICAL NOTES
 // ══════════════════════════════════════════════════════════════════════
-(function() {
+function _initClinicalNotes() {
   const transcript = document.getElementById('n-transcript');
   const extractBtn = document.getElementById('n-extract-btn');
   const clearBtn = document.getElementById('n-clear-btn');
@@ -214,12 +242,12 @@ async function nCopyText(text, btn) {
   clearHistoryBtn.addEventListener('click', () => { if (confirm('Clear all notes history?')) { nSaveNotesHistory([]); renderNotesHistory(); } });
 
   renderNotesHistory();
-})();
+}
 
 // ══════════════════════════════════════════════════════════════════════
 //  LOT SCANNER
 // ══════════════════════════════════════════════════════════════════════
-(function() {
+function _initLotScanner() {
   const fileInput = document.getElementById('n-file-input');
   const dropZone = document.getElementById('n-drop-zone');
   const dropPlaceholder = document.getElementById('n-drop-placeholder');
@@ -424,12 +452,12 @@ async function nCopyText(text, btn) {
   cancelLotPicker.addEventListener('click', () => { lotPicker.classList.add('hidden'); scanResults.classList.remove('hidden'); });
 
   renderScanHistory();
-})();
+}
 
 // ══════════════════════════════════════════════════════════════════════
 //  PATIENTS
 // ══════════════════════════════════════════════════════════════════════
-(function() {
+function _initPatients() {
   const patientsListSection = document.getElementById('n-patients-list');
   const createSection = document.getElementById('n-create-section');
   const detailSection = document.getElementById('n-detail-section');
@@ -751,4 +779,13 @@ async function nCopyText(text, btn) {
   search.addEventListener('input', () => renderPatientList(search.value));
 
   renderPatientList();
-})();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  INIT — load data from server, then wire up all UI
+// ══════════════════════════════════════════════════════════════════════
+nInitData().then(() => {
+  _initClinicalNotes();
+  _initLotScanner();
+  _initPatients();
+});

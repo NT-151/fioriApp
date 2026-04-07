@@ -1,7 +1,44 @@
 const express = require('express');
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
 
 const router = express.Router();
+
+// ── File-based data storage ──
+const DATA_DIR = path.join(__dirname, '..', 'data');
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+const DATA_STORES = ['patients', 'patientNotes', 'lotLinks', 'notesHistory', 'scanHistory'];
+
+function dataFilePath(store) {
+  return path.join(DATA_DIR, `notes_${store}.json`);
+}
+
+function loadStore(store) {
+  try { return JSON.parse(fs.readFileSync(dataFilePath(store), 'utf8')); }
+  catch { return []; }
+}
+
+function saveStore(store, data) {
+  fs.writeFileSync(dataFilePath(store), JSON.stringify(data, null, 2));
+}
+
+// GET /api/notes/data/:store — read a data store
+router.get('/data/:store', (req, res) => {
+  const store = req.params.store;
+  if (!DATA_STORES.includes(store)) return res.status(400).json({ error: 'Invalid store' });
+  res.json(loadStore(store));
+});
+
+// PUT /api/notes/data/:store — replace a data store
+router.put('/data/:store', (req, res) => {
+  const store = req.params.store;
+  if (!DATA_STORES.includes(store)) return res.status(400).json({ error: 'Invalid store' });
+  if (!Array.isArray(req.body)) return res.status(400).json({ error: 'Body must be an array' });
+  saveStore(store, req.body);
+  res.json({ ok: true });
+});
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
