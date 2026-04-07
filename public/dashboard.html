@@ -1,165 +1,400 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fiori — DM Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css" />
-</head>
-<body>
-  <div id="app">
-    <!-- Sidebar -->
-    <aside id="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#g1)"/><path d="M9 18.5C9 16 11 14 14 14s5 2 5 4.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="14" cy="10" r="3" stroke="#fff" stroke-width="1.8"/><defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs></svg>
-          <span>Fiori DMs</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fiori — DM Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Left Navigation Bar -->
+      <nav id="navBar">
+        <div class="nav-logo">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="14" fill="url(#g1)" />
+            <path
+              d="M9 18.5C9 16 11 14 14 14s5 2 5 4.5"
+              stroke="#fff"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+            <circle cx="14" cy="10" r="3" stroke="#fff" stroke-width="1.8" />
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="28" y2="28">
+                <stop stop-color="#6366f1" />
+                <stop offset="1" stop-color="#a855f7" />
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
-      </div>
-
-      <!-- Platform Tabs — 2 rows -->
-      <div class="platform-tabs-grid">
-        <button class="tab" data-platform="facebook" onclick="switchPlatform('facebook')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-          Facebook
-        </button>
-        <button class="tab active" data-platform="instagram" onclick="switchPlatform('instagram')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-          Instagram
-        </button>
-        <button class="tab" data-platform="whatsapp" onclick="switchPlatform('whatsapp')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          WhatsApp
-        </button>
-        <button class="tab" data-platform="outlook" onclick="switchPlatform('outlook')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.16.154-.352.23-.578.23h-8.26v-6.12l1.58 1.157a.49.49 0 00.348.126.538.538 0 00.348-.126.39.39 0 00.15-.31.4.4 0 00-.15-.3L14.93 11.23l2.27-1.867a.39.39 0 00.15-.302.39.39 0 00-.15-.3.53.53 0 00-.348-.127.49.49 0 00-.348.126l-1.58 1.158V7.137h8.26c.226 0 .417.077.578.23.158.153.238.346.238.577v-.557zM14.924 5.67v1.467H8.202V3.474L0 5.39v13.22l8.202 1.917V12.55h6.722v6.12h-6.722v1.466l9.592-1.916V7.587L14.924 5.67zM7.47 15.963c-.428.478-.985.717-1.67.717-.696 0-1.257-.237-1.684-.71-.428-.474-.642-1.085-.642-1.833 0-.78.218-1.41.653-1.895.435-.483.998-.726 1.69-.726.675 0 1.228.24 1.66.717.43.478.645 1.103.645 1.876 0 .78-.217 1.376-.652 1.854z"/></svg>
-          Outlook
-        </button>
-        <button class="tab" data-platform="todo" onclick="switchPlatform('todo')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-          To Do
-        </button>
-      </div>
-
-      <!-- Page selector (for Facebook only) -->
-      <div class="page-selector hidden" id="pageSelector">
-        <label>Select Page</label>
-        <select id="pageSelect" onchange="onPageChange()">
-          <option value="">Loading pages…</option>
-        </select>
-      </div>
-
-      <!-- WhatsApp phone selector -->
-      <div class="page-selector hidden" id="waPhoneSelector">
-        <label>WhatsApp Number</label>
-        <select id="waPhoneSelect" onchange="onWaPhoneChange()">
-          <option value="">Loading numbers…</option>
-        </select>
-      </div>
-
-      <!-- Outlook connect / folder selector -->
-      <div class="page-selector hidden" id="outlookSelector">
-        <div id="outlookNotConnected">
-          <a href="/api/outlook/auth" class="outlook-connect-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Sign in with Microsoft
-          </a>
-        </div>
-        <div id="outlookConnected" class="hidden">
-          <div class="outlook-user" id="outlookUser"></div>
-          <label>Folder</label>
-          <select id="outlookFolderSelect" onchange="onOutlookFolderChange()">
-            <option value="inbox">Inbox</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Conversation list -->
-      <div class="conversations-header">
-        <span id="conversationsLabel">Conversations</span>
-        <button class="refresh-btn" onclick="loadConversations()" title="Refresh">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-        </button>
-      </div>
-      <div id="conversationList" class="conversation-list">
-        <div class="empty-state">Select a platform to get started</div>
-      </div>
-    </aside>
-
-    <!-- Main chat area -->
-    <main id="chatArea">
-      <div class="chat-placeholder" id="chatPlaceholder">
-        <div class="placeholder-icon">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        </div>
-        <h2>Welcome to Fiori DM Dashboard</h2>
-        <p>Select a conversation from the sidebar to view messages</p>
-      </div>
-
-      <!-- To Do view -->
-      <div class="todo-view hidden" id="todoView">
-        <div class="todo-top">
-          <div class="todo-top-left">
-            <h2 class="todo-title">To Do List</h2>
-            <p class="todo-subtitle">AI-extracted tasks from your messages</p>
-          </div>
-          <button class="todo-scan-btn" id="todoScanBtn" onclick="scanForTodos()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            Scan Messages
+        <div class="nav-items">
+          <button
+            class="nav-item active"
+            data-nav="messages"
+            onclick="switchNav('messages')"
+            title="Messages"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+              />
+            </svg>
+            <span>Messages</span>
           </button>
         </div>
-        <div class="todo-filters" id="todoFilters">
-          <button class="todo-filter active" data-filter="all" onclick="filterTodos('all')">All</button>
-          <button class="todo-filter" data-filter="high" onclick="filterTodos('high')">High Priority</button>
-          <button class="todo-filter" data-filter="facebook" onclick="filterTodos('facebook')">Facebook</button>
-          <button class="todo-filter" data-filter="instagram" onclick="filterTodos('instagram')">Instagram</button>
-          <button class="todo-filter" data-filter="outlook" onclick="filterTodos('outlook')">Outlook</button>
-        </div>
-        <div class="todo-meta hidden" id="todoMeta"></div>
-        <div id="todoList" class="todo-list">
-          <div class="todo-empty">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            <p>Click <strong>Scan Messages</strong> to extract action items from your recent messages across all platforms</p>
+      </nav>
+
+      <!-- Messages Section (main content) -->
+      <div id="messagesSection" class="nav-section">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+          <div class="sidebar-header">
+            <div class="logo">
+              <span>Messages</span>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Chat header -->
-      <div class="chat-header hidden" id="chatHeader">
-        <div class="chat-contact">
-          <div class="avatar" id="chatAvatar">?</div>
-          <div class="chat-contact-info">
-            <h3 id="chatName">&mdash;</h3>
-            <span class="chat-platform" id="chatPlatformBadge">Facebook</span>
+          <!-- Platform Tabs — 2 rows -->
+          <div class="platform-tabs-grid">
+            <button
+              class="tab"
+              data-platform="facebook"
+              onclick="switchPlatform('facebook')"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                />
+              </svg>
+              Facebook
+            </button>
+            <button
+              class="tab active"
+              data-platform="instagram"
+              onclick="switchPlatform('instagram')"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"
+                />
+              </svg>
+              Instagram
+            </button>
+            <button
+              class="tab"
+              data-platform="whatsapp"
+              onclick="switchPlatform('whatsapp')"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"
+                />
+              </svg>
+              WhatsApp
+            </button>
+            <button
+              class="tab"
+              data-platform="outlook"
+              onclick="switchPlatform('outlook')"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M24 7.387v10.478c0 .23-.08.424-.238.576-.16.154-.352.23-.578.23h-8.26v-6.12l1.58 1.157a.49.49 0 00.348.126.538.538 0 00.348-.126.39.39 0 00.15-.31.4.4 0 00-.15-.3L14.93 11.23l2.27-1.867a.39.39 0 00.15-.302.39.39 0 00-.15-.3.53.53 0 00-.348-.127.49.49 0 00-.348.126l-1.58 1.158V7.137h8.26c.226 0 .417.077.578.23.158.153.238.346.238.577v-.557zM14.924 5.67v1.467H8.202V3.474L0 5.39v13.22l8.202 1.917V12.55h6.722v6.12h-6.722v1.466l9.592-1.916V7.587L14.924 5.67zM7.47 15.963c-.428.478-.985.717-1.67.717-.696 0-1.257-.237-1.684-.71-.428-.474-.642-1.085-.642-1.833 0-.78.218-1.41.653-1.895.435-.483.998-.726 1.69-.726.675 0 1.228.24 1.66.717.43.478.645 1.103.645 1.876 0 .78-.217 1.376-.652 1.854z"
+                />
+              </svg>
+              Outlook
+            </button>
           </div>
+
+          <!-- Page selector (for Facebook only) -->
+          <div class="page-selector hidden" id="pageSelector">
+            <label>Select Page</label>
+            <select id="pageSelect" onchange="onPageChange()">
+              <option value="">Loading pages…</option>
+            </select>
+          </div>
+
+          <!-- WhatsApp phone selector -->
+          <div class="page-selector hidden" id="waPhoneSelector">
+            <label>WhatsApp Number</label>
+            <select id="waPhoneSelect" onchange="onWaPhoneChange()">
+              <option value="">Loading numbers…</option>
+            </select>
+          </div>
+
+          <!-- Outlook connect / folder selector -->
+          <div class="page-selector hidden" id="outlookSelector">
+            <div id="outlookNotConnected">
+              <a href="/api/outlook/auth" class="outlook-connect-btn">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                Sign in with Microsoft
+              </a>
+            </div>
+            <div id="outlookConnected" class="hidden">
+              <div class="outlook-user" id="outlookUser"></div>
+              <label>Folder</label>
+              <select
+                id="outlookFolderSelect"
+                onchange="onOutlookFolderChange()"
+              >
+                <option value="inbox">Inbox</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Conversation list -->
+          <div class="conversations-header">
+            <span id="conversationsLabel">Conversations</span>
+            <button
+              class="refresh-btn"
+              onclick="loadConversations()"
+              title="Refresh"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path
+                  d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+                />
+              </svg>
+            </button>
+          </div>
+          <div id="conversationList" class="conversation-list">
+            <div class="empty-state">Select a platform to get started</div>
+          </div>
+        </aside>
+
+        <!-- Main chat area -->
+        <main id="chatArea">
+          <div class="chat-placeholder" id="chatPlaceholder">
+            <div class="placeholder-icon">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+                />
+              </svg>
+            </div>
+            <h2>Welcome to Fiori DM Dashboard</h2>
+            <p>Select a conversation from the sidebar to view messages</p>
+          </div>
+
+          <!-- Chat header -->
+          <div class="chat-header hidden" id="chatHeader">
+            <div class="chat-contact">
+              <div class="avatar" id="chatAvatar">?</div>
+              <div class="chat-contact-info">
+                <h3 id="chatName">&mdash;</h3>
+                <span class="chat-platform" id="chatPlatformBadge"
+                  >Facebook</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Email view (Outlook only) -->
+          <div class="email-view hidden" id="emailView">
+            <div class="email-header" id="emailHeader"></div>
+            <div class="email-body" id="emailBody"></div>
+          </div>
+
+          <!-- Messages -->
+          <div class="messages-container hidden" id="messagesContainer">
+            <div id="messagesList"></div>
+          </div>
+
+          <!-- Compose -->
+          <div class="compose hidden" id="composeBar">
+            <input
+              type="text"
+              id="composeInput"
+              placeholder="Type a message…"
+              onkeydown="if (event.key === 'Enter') sendMessage();"
+            />
+            <button onclick="sendMessage()" class="send-btn">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
+          </div>
+        </main>
+
+        <!-- To Do Panel (right side) -->
+        <aside id="todoPanel">
+          <div class="todo-panel-header">
+            <div class="todo-panel-title-row">
+              <h3 class="todo-panel-title">To Do</h3>
+              <button class="todo-scan-btn" id="todoScanBtn" onclick="scanForTodos()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Scan
+              </button>
+            </div>
+            <p class="todo-panel-subtitle">AI-extracted tasks</p>
+            <div class="todo-filters" id="todoFilters">
+              <button class="todo-filter active" data-filter="all" onclick="filterTodos('all')">All</button>
+              <button class="todo-filter" data-filter="high" onclick="filterTodos('high')">High</button>
+              <button class="todo-filter" data-filter="facebook" onclick="filterTodos('facebook')">FB</button>
+              <button class="todo-filter" data-filter="instagram" onclick="filterTodos('instagram')">IG</button>
+              <button class="todo-filter" data-filter="outlook" onclick="filterTodos('outlook')">OL</button>
+            </div>
+          </div>
+          <div class="todo-meta hidden" id="todoMeta"></div>
+          <div id="todoList" class="todo-list">
+            <div class="todo-empty">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              <p>Click <strong>Scan</strong> to extract action items from your messages</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+      <!-- end messagesSection -->
+
+      <!-- Contacts Section -->
+      <div id="contactsSection" class="nav-section hidden">
+        <div class="placeholder-section">
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87" />
+            <path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
+          <h2>Contacts</h2>
+          <p>Contact management coming soon</p>
         </div>
       </div>
 
-      <!-- Email view (Outlook only) -->
-      <div class="email-view hidden" id="emailView">
-        <div class="email-header" id="emailHeader"></div>
-        <div class="email-body" id="emailBody"></div>
+      <!-- Analytics Section -->
+      <div id="analyticsSection" class="nav-section hidden">
+        <div class="placeholder-section">
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          <h2>Analytics</h2>
+          <p>Analytics dashboard coming soon</p>
+        </div>
       </div>
 
-      <!-- Messages -->
-      <div class="messages-container hidden" id="messagesContainer">
-        <div id="messagesList"></div>
+      <!-- Settings Section -->
+      <div id="settingsSection" class="nav-section hidden">
+        <div class="placeholder-section">
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+            />
+          </svg>
+          <h2>Settings</h2>
+          <p>App settings coming soon</p>
+        </div>
       </div>
+    </div>
 
-      <!-- Compose -->
-      <div class="compose hidden" id="composeBar">
-        <input type="text" id="composeInput" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMessage()" />
-        <button onclick="sendMessage()" class="send-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
-    </main>
-  </div>
-
-  <div id="toastContainer"></div>
-  <script src="/app.js"></script>
-</body>
+    <div id="toastContainer"></div>
+    <script src="/app.js"></script>
+  </body>
 </html>

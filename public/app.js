@@ -36,6 +36,19 @@ let platformGeneration = 0; // incremented on every platform switch to discard s
 const platformCache = {};
 
 // ══════════════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════════════════════
+function switchNav(section) {
+  // Update nav buttons
+  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`.nav-item[data-nav="${section}"]`).classList.add('active');
+
+  // Show/hide sections
+  document.querySelectorAll('.nav-section').forEach(s => s.classList.add('hidden'));
+  document.getElementById(section + 'Section').classList.remove('hidden');
+}
+
+// ══════════════════════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
@@ -433,17 +446,6 @@ function switchPlatform(platform) {
       document.getElementById('outlookNotConnected').classList.add('hidden');
       document.getElementById('outlookConnected').classList.remove('hidden');
     }
-  } else if (platform === 'todo') {
-    hideAllMainViews();
-    document.getElementById('todoView').classList.remove('hidden');
-    document.getElementById('conversationsLabel').textContent = 'Sources';
-    document.getElementById('conversationList').innerHTML =
-      '<div class="todo-sources">' +
-        '<div class="todo-source-item"><span class="todo-source-dot fb"></span>Facebook Messages</div>' +
-        '<div class="todo-source-item"><span class="todo-source-dot ig"></span>Instagram DMs</div>' +
-        '<div class="todo-source-item"><span class="todo-source-dot ol"></span>Outlook Emails</div>' +
-      '</div>';
-    if (state.todoTasks && state.todoTasks.length) renderTodos();
   }
 }
 
@@ -565,7 +567,6 @@ function hideAllMainViews() {
   document.getElementById('messagesContainer').classList.add('hidden');
   document.getElementById('composeBar').classList.add('hidden');
   document.getElementById('emailView').classList.add('hidden');
-  document.getElementById('todoView').classList.add('hidden');
   document.getElementById('messagesList').innerHTML = '';
 }
 

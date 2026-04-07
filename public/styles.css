@@ -23,7 +23,9 @@
   --danger:     #ef4444;
   --radius:     12px;
   --radius-sm:  8px;
-  --sidebar-w:  380px;
+  --sidebar-w:  300px;
+  --todo-w:     320px;
+  --nav-w:      72px;
   --transition: 180ms ease;
 }
 
@@ -39,6 +41,94 @@ html, body {
   display: flex;
   height: 100vh;
   overflow: hidden;
+}
+
+/* ── Left Navigation Bar ──────────────────────────────────────────── */
+#navBar {
+  width: var(--nav-w);
+  min-width: var(--nav-w);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 8px;
+}
+
+.nav-logo {
+  padding: 4px 0 16px;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.nav-items {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px 8px;
+  width: 64px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all var(--transition);
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.nav-item.active {
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+}
+
+/* ── Nav Sections ────────────────────────────────────────────────── */
+.nav-section {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.placeholder-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.placeholder-section svg { opacity: 0.2; }
+
+.placeholder-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.placeholder-section p {
+  font-size: 14px;
 }
 
 /* ── Sidebar ──────────────────────────────────────────────────────── */
@@ -696,58 +786,50 @@ html, body {
   to   { opacity: 0; }
 }
 
-/* ── To Do Tab ─────────────────────────────────────────────────────── */
-.tab.active[data-platform="todo"] {
-  background: rgba(168,85,247,0.12);
-  border-color: #a855f7;
-  color: #c084fc;
-}
-
-.tab[data-platform="todo"] {
-  grid-column: 1 / -1;
-}
-
-/* ── To Do View ────────────────────────────────────────────────────── */
-.todo-view {
-  flex: 1;
+/* ── To Do Panel (right side) ─────────────────────────────────────── */
+#todoPanel {
+  width: var(--todo-w);
+  min-width: var(--todo-w);
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  padding: 24px 32px;
+  overflow: hidden;
 }
 
-.todo-view::-webkit-scrollbar { width: 6px; }
-.todo-view::-webkit-scrollbar-track { background: transparent; }
-.todo-view::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+.todo-panel-header {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
 
-.todo-top {
+.todo-panel-title-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 4px;
 }
 
-.todo-title {
-  font-size: 22px;
+.todo-panel-title {
+  font-size: 16px;
   font-weight: 700;
 }
 
-.todo-subtitle {
-  font-size: 13px;
+.todo-panel-subtitle {
+  font-size: 11px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-bottom: 10px;
 }
 
 .todo-scan-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 5px;
+  padding: 6px 12px;
   background: linear-gradient(135deg, #6366f1, #a855f7);
   border: none;
   border-radius: var(--radius-sm);
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -760,18 +842,17 @@ html, body {
 
 .todo-filters {
   display: flex;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .todo-filter {
-  padding: 6px 14px;
+  padding: 4px 10px;
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: 20px;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -782,42 +863,48 @@ html, body {
 .todo-filter.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-hover); }
 
 .todo-meta {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-bottom: 16px;
-  padding: 8px 12px;
+  padding: 8px 16px;
   background: var(--bg-raised);
-  border-radius: var(--radius-sm);
+  border-bottom: 1px solid var(--border);
 }
 
 .todo-meta strong { color: var(--text); }
 
 .todo-list {
+  flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  padding: 12px;
 }
+
+.todo-list::-webkit-scrollbar { width: 5px; }
+.todo-list::-webkit-scrollbar-track { background: transparent; }
+.todo-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
 .todo-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 60px 20px;
+  gap: 12px;
+  padding: 40px 16px;
   color: var(--text-muted);
   text-align: center;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .todo-card {
   display: flex;
-  gap: 14px;
-  padding: 16px;
-  background: var(--bg-surface);
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   border-left: 3px solid var(--border);
   transition: all var(--transition);
 }
@@ -859,9 +946,9 @@ html, body {
 .todo-card.expanded .todo-chevron { transform: rotate(180deg); }
 
 .todo-card-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   line-height: 1.4;
 }
 
@@ -958,36 +1045,20 @@ html, body {
   color: var(--text-muted);
 }
 
-/* ── To Do sidebar sources ─────────────────────────────────────────── */
-.todo-sources { padding: 12px; }
-
-.todo-source-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-.todo-source-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.todo-source-dot.fb { background: var(--fb-blue); }
-.todo-source-dot.ig { background: var(--ig-pink); }
-.todo-source-dot.ol { background: var(--ol-blue); }
 
 /* ── Utility ───────────────────────────────────────────────────────── */
 .hidden { display: none !important; }
 
 /* ── Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  :root { --todo-w: 260px; }
+}
+
 @media (max-width: 768px) {
-  :root { --sidebar-w: 100vw; }
-  #app { flex-direction: column; }
+  :root { --sidebar-w: 100vw; --nav-w: 56px; }
+  .nav-section { flex-direction: column; }
   #chatArea.has-conv { display: flex; }
+  .nav-item { width: 48px; padding: 8px 2px 6px; }
+  .nav-item span { font-size: 9px; }
+  #todoPanel { display: none; }
 }
